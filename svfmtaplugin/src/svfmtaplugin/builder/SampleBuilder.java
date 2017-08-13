@@ -1,6 +1,9 @@
 package svfmtaplugin.builder;
 
+
+import java.io.FileNotFoundException;
 import java.util.Map;
+
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -31,7 +34,7 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			IResource resource = delta.getResource();
 
-
+			//populateErrors();
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				// handle added resource
@@ -204,12 +207,35 @@ System.out.println("sadadasd");
 			} catch (Exception e1) {
 			}
 		}
-//
 	}
 	
 	//need to read file somehow.
+	//populate the array with data from the file
 	//TODO 
 	void readErrors() {
 		
+		//Read from src.
 	}
+	
+//	void populateErrors() {
+//		System.out.println("adsadasdD");
+//		Scanner sc = null;
+//		try {
+//			sc = new Scanner(new FileReader("output.txt"));
+//
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		if(sc != null) {
+//			while(sc.hasNext()){
+//				System.out.println(sc.nextLine());
+//			}	
+//			
+//			sc.close();
+//		}
+//
+//		
+//	}
+	
 }
