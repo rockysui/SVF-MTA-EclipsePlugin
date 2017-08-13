@@ -32,11 +32,6 @@ public class BCHandler extends AbstractHandler {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
-//		MessageDialog.openInformation(
-//				window.getShell(),
-//				"Svfmtaplugin",
-//				"Hello, Eclipse world");
 		return null;
 	}
 }
