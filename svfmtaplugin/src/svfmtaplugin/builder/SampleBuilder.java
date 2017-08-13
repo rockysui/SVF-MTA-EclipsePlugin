@@ -26,6 +26,8 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class SampleBuilder extends IncrementalProjectBuilder {
+	
+	int xxx;
 
 	class SampleDeltaVisitor implements IResourceDeltaVisitor {
 		/*
@@ -35,25 +37,34 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		 */
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			IResource resource = delta.getResource();
-System.out.println("Im reading err in visit with cases");
-			//readErrors();
+			if(xxx == 0) {
+				System.out.println("Im reading err in visit with cases");
+
+				readErrors();				
+			}
+
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				// handle added resource
+		
 				//checkXML(resource);
 //				checkwords(resource);
-				//readErrors();
+				readErrors();
 				annotateErrors(resource);
 				break;
 			case IResourceDelta.REMOVED:
 				// handle removed resource
-				deleteMarkers((IFile) resource);
+				System.out.println("Im removing thins?");
+				//deleteMarkers((IFile) resource);
+				//clean(null);
 				break;
 			case IResourceDelta.CHANGED:
 				// handle changed resource
 				//checkXML(resource);
 			//	checkwords(resource);
-			//	annotateErrors(resource);
+				annotateErrors(resource);
+				System.out.println("Im changing thins?");
+				//deleteMarkers((IFile) resource);
 				break;
 			}
 			//return true to continue visiting children.
@@ -131,12 +142,15 @@ System.out.println("Im reading err in visit with cases");
 
 
 		if (kind == FULL_BUILD) {
+			System.out.println("full built");
 			fullBuild(monitor);
 		} else {
 			IResourceDelta delta = getDelta(getProject());
 			if (delta == null) {
 				fullBuild(monitor);
 			} else {
+				System.out.println("incre built");
+
 				incrementalBuild(delta, monitor);
 			}
 		}
@@ -152,7 +166,6 @@ System.out.println("Im reading err in visit with cases");
 System.out.println("sadadasd");
 		if (resource instanceof IFile && resource.getName().endsWith(".xml")) {
 			IFile file = (IFile) resource;
-			deleteMarkers(file);
 			XMLErrorHandler reporter = new XMLErrorHandler(file);
 			try {
 				getParser().parse(file.getContents(), reporter);
@@ -259,28 +272,7 @@ System.out.println("sadadasd");
 		}
 	}
 	
-	//insert code below to annotate errors from error file maybs
-	//TODO
-	void checkwords(IResource resource) {
-		if (resource instanceof IFile && resource.getName().endsWith(".java")) {
-			System.out.println("im a cpp file, correcta");
-			IFile file = (IFile) resource;
-			deleteMarkers(file);
-			addMarker(file, "You did a whoopsies", 1, 1);
-			addMarker(file, "You did a whoopsies", 2, 2);
 
-			
-
-
-			XMLErrorHandler reporter = new XMLErrorHandler(file);
-
-			try {
-				getParser().parse(file.getContents(), reporter);
-			} catch (Exception e1) {
-			}
-		}
-//
-	}
 	
 	void annotateErrors(IResource resource) {
 		System.out.println("asdasd");
@@ -288,14 +280,14 @@ System.out.println("sadadasd");
 			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
 			IFile firstIfile = this.getProject().getFile("src/asd/" + ec.getFirstFile());
 			IFile secondIfile = this.getProject().getFile("src/asd/" + ec.getSecondFile());
-			//deleteMarkers(firstIfile);
-			//deleteMarkers(secondIfile);
-			String fileName = firstIfile.getLocation().toString();
-			System.out.println("first = " + fileName);
-			String sfileName = firstIfile.getLocation().toString();
-			System.out.println("second = " + sfileName);
-			addMarker(firstIfile, "testing", ec.getFirstErr(), 2);
-			addMarker(secondIfile, "linked", ec.getSecondErr(), 2);
+//			deleteMarkers(firstIfile);
+//			deleteMarkers(secondIfile);
+//			String fileName = firstIfile.getLocation().toString();
+//			System.out.println("first = " + fileName);
+//			String sfileName = firstIfile.getLocation().toString();
+//			System.out.println("second = " + sfileName);
+			addMarker(firstIfile, "Possible alias on line " + ec.getSecondErr() + " in file "+ ec.getSecondFile(), ec.getFirstErr(), 2);
+			addMarker(secondIfile, "Alias followed from line " + ec.getFirstErr() + " in file " + ec.getFirstFile(), ec.getSecondErr(), 2);
 
 		}
 	}
