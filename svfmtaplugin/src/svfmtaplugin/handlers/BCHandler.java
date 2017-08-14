@@ -27,6 +27,7 @@ public class BCHandler extends AbstractHandler {
 	 */
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		try {
+			System.out.println("asdas");
 			Process process = new ProcessBuilder("C:\\\\Program Files\\Factorio\\bin\\x64\\factorio.exe").start();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
