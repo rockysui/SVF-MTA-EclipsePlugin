@@ -1,6 +1,7 @@
 package svfmtaplugin.handlers;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -26,13 +27,19 @@ public class BCHandler extends AbstractHandler {
 	 * from the application context.
 	 */
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		//This is a test
+		//this is where you place the exe
 		try {
-			System.out.println("asdas");
 			Process process = new ProcessBuilder("C:\\\\Program Files\\Factorio\\bin\\x64\\factorio.exe").start();
+			OutputStream processOutput = process.getOutputStream();
+			//this is the created file, just need to create a file, dump this stream inside it and we'll have an outut.txt
+			//for the build handler
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
+
 	}
 }
