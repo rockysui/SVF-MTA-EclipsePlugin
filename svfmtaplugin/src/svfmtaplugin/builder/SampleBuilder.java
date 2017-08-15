@@ -1,8 +1,6 @@
 package svfmtaplugin.builder;
 
 
-
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -31,7 +29,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class SampleBuilder extends IncrementalProjectBuilder {
 	
 	int xxx;
-
+	int x;
 	class SampleDeltaVisitor implements IResourceDeltaVisitor {
 		/*
 		 * (non-Javadoc)
