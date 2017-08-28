@@ -1,5 +1,6 @@
 package svfmtaplugin.handlers;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -29,9 +30,18 @@ public class BCHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		//This is a test
 		//this is where you place the exe
+	
+
 		try {
-			Process process = new ProcessBuilder("C:\\\\Program Files\\Factorio\\bin\\x64\\factorio.exe").start();
+			String mtaDest = "/home/a/git/SVF-MTA-Eclipseplugin/svfmtaplugin/folder/mta";
+			String mtaArg = "-mhp";
+			String bcFile = "/home/a/git/SVF-MTA-Eclipseplugin/svfmtaplugin/folder/example.bc";
+			File destination = new File("/home/a/git/SVF-MTA-Eclipseplugin/svfmtaplugin/folder/");
+			ProcessBuilder runMTA = new ProcessBuilder(mtaDest, mtaArg, bcFile);
+			Process process = runMTA.start();
 			OutputStream processOutput = process.getOutputStream();
+			
+			System.out.println(processOutput);
 			//this is the created file, just need to create a file, dump this stream inside it and we'll have an outut.txt
 			//for the build handler
 
