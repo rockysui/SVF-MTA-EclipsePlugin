@@ -39,22 +39,20 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			IResource resource = delta.getResource();
 			if(xxx == 0) {
-				readErrors();				
+				readErrors(resource);				
 			}
 
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				// handle added resource
-		
-				//checkXML(resource);
-//				checkwords(resource);
-				//readErrors();
+				
+//maybs donno, how'd that work... but k lets see
 				annotateErrors(resource);
 				break;
 			case IResourceDelta.REMOVED:
 				// handle removed resource
 				System.out.println("Im removing thins?");
-				//deleteMarkers((IFile) resource);
+				removeAnnotation((IFile) resource);
 				//clean(null);
 				break;
 			case IResourceDelta.CHANGED:
@@ -77,32 +75,6 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 			annotateErrors(resource);
 			//return true to continue visiting children.
 			return true;
-		}
-	}
-
-	class XMLErrorHandler extends DefaultHandler {
-		
-		private IFile file;
-
-		public XMLErrorHandler(IFile file) {
-			this.file = file;
-		}
-
-		private void addMarker(SAXParseException e, int severity) {
-			SampleBuilder.this.addMarker(file, e.getMessage(), e
-					.getLineNumber(), severity);
-		}
-
-		public void error(SAXParseException exception) throws SAXException {
-			addMarker(exception, IMarker.SEVERITY_ERROR);
-		}
-
-		public void fatalError(SAXParseException exception) throws SAXException {
-			addMarker(exception, IMarker.SEVERITY_ERROR);
-		}
-
-		public void warning(SAXParseException exception) throws SAXException {
-			addMarker(exception, IMarker.SEVERITY_WARNING);
 		}
 	}
 
@@ -158,19 +130,14 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		getProject().deleteMarkers(MARKER_TYPE, true, IResource.DEPTH_INFINITE);
 	}
 
-	void checkXML(IResource resource) {
-System.out.println("sadadasd");
-		if (resource instanceof IFile && resource.getName().endsWith(".xml")) {
-			IFile file = (IFile) resource;
-			XMLErrorHandler reporter = new XMLErrorHandler(file);
-			try {
-				getParser().parse(file.getContents(), reporter);
-			} catch (Exception e1) {
-			}
-		}
-		System.out.println("im out");
-	}
 
+//run the tool everytime something is changed? for single files. 
+// i think give them the option to unmark something and then when they think theyve fixed everything run the tool
+	// and =if its not fixed then theyll see it again
+	//if they change it, it'll annotate things that may not be there, cause output.txt
+	//they change something, remove it all?
+	//maybe it shouldnt annotate markers everytime u save but only once or allow them to press abbutton to anotate
+	//kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk 
 	private void deleteMarkers(IFile file) {
 		try {
 			file.deleteMarkers(MARKER_TYPE, false, IResource.DEPTH_ZERO);
@@ -269,55 +236,52 @@ System.out.println("sadadasd");
 		}
 	}
 
-	//insert code below to detect errors from error file maybs
-	//TODO
-	void checkwords(IResource resource) {
-		if (resource instanceof IFile && resource.getName().endsWith(".java")) {
-			IFile file = (IFile) resource;
-			deleteMarkers(file);
-			addMarker(file, "You did a whoopsies", 1, 1);
-			addMarker(file, "You did a whoopsies", 2, 2);
-			
+	void removeAnnotation(IResource resource) {
+		for(ErrorContainer ec: ecs) {
+			IFile firstIfile = this.getProject().getFile("src/" + ec.getFirstFile());
+			IFile secondIfile = this.getProject().getFile("src/" + ec.getSecondFile());
+			deleteMarkers(firstIfile);
+			deleteMarkers(secondIfile);	
 
-
-			XMLErrorHandler reporter = new XMLErrorHandler(file);
-
-			try {
-				getParser().parse(file.getContents(), reporter);
-			} catch (Exception e1) {
-			}
 		}
 	}
+	
+	
 	void annotateErrors(IResource resource) {
 		
 		for(ErrorContainer ec : ecs) {
 			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
-			IFile firstIfile = this.getProject().getFile("src/tests/" + ec.getFirstFile());
-			IFile secondIfile = this.getProject().getFile("src/tests/" + ec.getSecondFile());
+			
+			IFile firstIfile = this.getProject().getFile("src/" + ec.getFirstFile());
+			IFile secondIfile = this.getProject().getFile("src/" + ec.getSecondFile());
 //			deleteMarkers(firstIfile);
 //			deleteMarkers(secondIfile);
 //			String fileName = firstIfile.getLocation().toString();
 //			System.out.println("first = " + fileName);
 //			String sfileName = firstIfile.getLocation().toString();
 //			System.out.println("second = " + sfileName);
+			//reads the line from output.txt which doesn't update.
 			addMarker(firstIfile, "Possible alias on line " + ec.getSecondErr() + " in file "+ ec.getSecondFile(), ec.getFirstErr(), 2);
 			addMarker(secondIfile, "Alias followed from line " + ec.getFirstErr() + " in file " + ec.getFirstFile(), ec.getSecondErr(), 2);
 
+
 		}
+		ecs.clear();
+
 	}
 
 	//need to read file somehow.
 	//populate the array with data from the file
 	//TODO 
-	void readErrors() {
+	void readErrors(IResource resource) {
 		try {
 			//gets the output.txt from the java project, regardless if it exists
-			IFile ifile = this.getProject().getFile("output.txt");
-			
+
 			//gets the string of the path
-			String fileName = ifile.getLocation().toString();
+			String x = resource.getProject().getLocation().toString();
+			x = x + "/output.txt"; //need to be sure that this is the path...but linux.
 			//creates a file class
-			File file = new File(fileName);
+			File file = new File(x);
 			
 			
 			//now does the check if it exists
@@ -345,25 +309,6 @@ System.out.println("sadadasd");
 
 	}
 	
-//	void populateErrors() {
-//		System.out.println("adsadasdD");
-//		Scanner sc = null;
-//		try {
-//			sc = new Scanner(new FileReader("output.txt"));
-//
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		if(sc != null) {
-//			while(sc.hasNext()){
-//				System.out.println(sc.nextLine());
-//			}	
-//			
-//			sc.close();
-//		}
-//
-//		
-//	}
+
 	
 }

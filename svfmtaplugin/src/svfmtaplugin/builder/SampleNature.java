@@ -37,6 +37,9 @@ public class SampleNature implements IProjectNature {
 		newCommands[newCommands.length - 1] = command;
 		desc.setBuildSpec(newCommands);
 		project.setDescription(desc, null);
+		System.out.println("NATURE");
+		String x = project.getLocation().toString();
+		System.out.println(x);
 	}
 
 	/*

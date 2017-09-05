@@ -72,6 +72,7 @@ public class AddRemoveSampleNatureHandler extends AbstractHandler {
 		newNatures[natures.length] = SampleNature.NATURE_ID;
 		description.setNatureIds(newNatures);
 		project.setDescription(description, null);
+
 	}
 
 }
