@@ -21,8 +21,8 @@ Using the following arguments:
 6. Setup the MTA external tool:
 * Location: `path to MTA`
 * Working Directory: `Current working directory`
-* Arguments: `-mhp outut.txt`
-![Imgur](https://i.imgur.com/qBs5m7h.png)
+* Arguments: `-mhp <OUTPUTNAME>.bc`
+![Imgur](https://i.imgur.com/2aNp66k.png)
 
 7. Convert the c file into a bc file by running the external tool that converts c to bc.
 
