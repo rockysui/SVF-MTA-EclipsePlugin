@@ -3,9 +3,9 @@ EclipsePlugin of Data Race Detection
 
 ### Setup instructions.
 
-1. Download the plugin <PLUGIN NAME> at <ADDRESS>. (When released).
+1. Download the plugin (PLUGIN NAME) at (ADDRESS). (When released).
 
-2. Download the MTA tool and libraries at <ADDRESS>.
+2. Download the MTA tool and libraries at (ADDRESS).
 
 3. Setup the LLVM Gold plugin. Instructions are at https://github.com/SVF-tools/SVF/wiki/Install-LLVM-Gold-Plugin-on-Ubuntu
 
