@@ -19,9 +19,13 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -39,9 +43,7 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		//to make a button, I don't know how to access the files.
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			IResource resource = delta.getResource();
-			if(xxx == 0) {
-				readErrors(resource);				
-			}
+			readErrors(resource);
 
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
@@ -238,9 +240,16 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 	}
 
 	void removeAnnotation(IResource resource) {
-		for(ErrorContainer ec: ecs) {
-			IFile firstIfile = this.getProject().getFile("src/" + ec.getFirstFile());
-			IFile secondIfile = this.getProject().getFile("src/" + ec.getSecondFile());
+		IWorkspace ws = ResourcesPlugin.getWorkspace();
+		for(ErrorContainer ec : ecs) {
+			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
+
+			
+			IPath location = Path.fromOSString(ec.getFirstFile());
+			IFile firstIfile = ws.getRoot().getFileForLocation(location);
+			location = Path.fromOSString(ec.getSecondFile());
+			IFile secondIfile = ws.getRoot().getFileForLocation(location);
+			
 			deleteMarkers(firstIfile);
 			deleteMarkers(secondIfile);	
 
@@ -249,12 +258,18 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 	
 	
 	void annotateErrors(IResource resource) {
-		
+
+
+		IWorkspace ws = ResourcesPlugin.getWorkspace();
 		for(ErrorContainer ec : ecs) {
 			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
+
 			
-			IFile firstIfile = this.getProject().getFile("src/" + ec.getFirstFile());
-			IFile secondIfile = this.getProject().getFile("src/" + ec.getSecondFile());
+			IPath location = Path.fromOSString(ec.getFirstFile());
+			IFile firstIfile = ws.getRoot().getFileForLocation(location);
+			location = Path.fromOSString(ec.getSecondFile());
+			IFile secondIfile = ws.getRoot().getFileForLocation(location);
+			
 //			deleteMarkers(firstIfile);
 //			deleteMarkers(secondIfile);
 //			String fileName = firstIfile.getLocation().toString();
@@ -303,6 +318,8 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 				ecs.add(e);
 			}
 			sc.close();
+			System.out.println("Michae");
+			file.delete();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
