@@ -31,7 +31,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class SampleBuilder extends IncrementalProjectBuilder {
-	
+	ArrayList<MarkerContainer> markerHolders;
 	int xxx;
 	int x;
 	class SampleDeltaVisitor implements IResourceDeltaVisitor {
@@ -43,7 +43,9 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		//to make a button, I don't know how to access the files.
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			IResource resource = delta.getResource();
-			readErrors(resource);
+System.out.println("readingerrs");
+				readErrors(resource);	
+
 
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
@@ -87,20 +89,26 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 
 	private SAXParserFactory parserFactory;
 
-	private void addMarker(IFile file, String message, int lineNumber,
+	private IMarker addMarker(IFile file, String message, int lineNumber,
 			int severity) {
+		IMarker marker = null;
 		try {
-			IMarker marker = file.createMarker(MARKER_TYPE);
+			marker = file.createMarker(MARKER_TYPE);
 			marker.setAttribute(IMarker.MESSAGE, message);
 			marker.setAttribute(IMarker.SEVERITY, severity);
 			if (lineNumber == -1) {
 				lineNumber = 1;
 			}
 			marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+			
 		} catch (CoreException e) {
 		}
+		return marker;
 	}
 
+	private void modifyMarker(IFile file, String message, int severity) {
+		
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -175,83 +183,21 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 	
 	/////////////////////////////////!@#!@#!@#!@#!@#!@#!#!#
 
-	ArrayList<ErrorContainer> ecs = new ArrayList<ErrorContainer>();
 
-	
-	//create class for the population of errors
-	class ErrorContainer {
-		public String firstFile;
-		public String secondFile;
-		public int	  firstErrLine;
-		public int    secondErrLine;
-		public ErrorContainer() {
-		}
-		public ErrorContainer(String s1, String s2, int err1, int err2) {
-			firstFile = s1;
-			secondFile = s2;
-			firstErrLine = err1;
-			secondErrLine = err2;
-		}
-		
-		void setFirstFile(String s) {
-			firstFile = s;
-		}
-	
-		void setSecondFile(String s) {
-			secondFile = s;
-		}
-		
-		void setFirstErrLine(int x) {
-			firstErrLine = x;
-		}
-		
-		void setSecondErrLine(int x) {
-			secondErrLine = x;
-		}
-		
-		String getFirstFile() {
-			return firstFile;
-		}
-		
-		String getSecondFile() {
-			return firstFile;
-		}
-		
-		int getFirstErr() {
-			return firstErrLine;
-		}
-		
-		int getSecondErr() {
-			return secondErrLine;
-		}
-		
-		@Override
-		public boolean equals(Object o) {	
-			if(o == null) return false;
-			if(!(o instanceof ErrorContainer)) return false;	
-			ErrorContainer ec = (ErrorContainer) o;
-			if(ec.firstFile == this.firstFile && ec.secondFile == this.secondFile
-					&& ec.firstErrLine == this.firstErrLine && ec.secondErrLine == this.secondErrLine) return true;
-			
-			
-			
-			return false;
-		}
-	}
 
 	void removeAnnotation(IResource resource) {
 		IWorkspace ws = ResourcesPlugin.getWorkspace();
-		for(ErrorContainer ec : ecs) {
+		for(MarkerContainer ec : markerHolders) {
 			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
 
-			
-			IPath location = Path.fromOSString(ec.getFirstFile());
-			IFile firstIfile = ws.getRoot().getFileForLocation(location);
-			location = Path.fromOSString(ec.getSecondFile());
-			IFile secondIfile = ws.getRoot().getFileForLocation(location);
-			
-			deleteMarkers(firstIfile);
-			deleteMarkers(secondIfile);	
+//			
+//			IPath location = Path.fromOSString(ec.getFirstFile());
+//			IFile firstIfile = ws.getRoot().getFileForLocation(location);
+//			location = Path.fromOSString(ec.getSecondFile());
+//			IFile secondIfile = ws.getRoot().getFileForLocation(location);
+//			
+//			deleteMarkers(firstIfile);
+//			deleteMarkers(secondIfile);	
 
 		}
 	}
@@ -261,36 +207,36 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 
 
 		IWorkspace ws = ResourcesPlugin.getWorkspace();
-		for(ErrorContainer ec : ecs) {
+		//for(MarkerContainer mc : markerHolders) {
 			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
 
 			
-			IPath location = Path.fromOSString(ec.getFirstFile());
-			IFile firstIfile = ws.getRoot().getFileForLocation(location);
-			location = Path.fromOSString(ec.getSecondFile());
-			IFile secondIfile = ws.getRoot().getFileForLocation(location);
-			
-//			deleteMarkers(firstIfile);
-//			deleteMarkers(secondIfile);
-//			String fileName = firstIfile.getLocation().toString();
-//			System.out.println("first = " + fileName);
-//			String sfileName = firstIfile.getLocation().toString();
-//			System.out.println("second = " + sfileName);
-			//reads the line from output.txt which doesn't update.
-			addMarker(firstIfile, "Possible alias on line " + ec.getSecondErr() + " in file "+ ec.getSecondFile(), ec.getFirstErr(), 2);
-			addMarker(secondIfile, "Alias followed from line " + ec.getFirstErr() + " in file " + ec.getFirstFile(), ec.getSecondErr(), 2);
+//			IPath location = Path.fromOSString(ec.getFirstFile());
+//			IFile firstIfile = ws.getRoot().getFileForLocation(location);
+//			location = Path.fromOSString(ec.getSecondFile());
+//			IFile secondIfile = ws.getRoot().getFileForLocation(location);
+//			
+////			deleteMarkers(firstIfile);
+////			deleteMarkers(secondIfile);
+////			String fileName = firstIfile.getLocation().toString();
+////			System.out.println("first = " + fileName);
+////			String sfileName = firstIfile.getLocation().toString();
+////			System.out.println("second = " + sfileName);
+//			//reads the line from output.txt which doesn't update.
+//			addMarker(firstIfile, "Possible alias on line " + ec.getSecondErr() + " in file "+ ec.getSecondFile(), ec.getFirstErr(), 2);
+//			addMarker(secondIfile, "Alias followed from line " + ec.getFirstErr() + " in file " + ec.getFirstFile(), ec.getSecondErr(), 2);
 
 
-		}
-		ecs.clear();
+		//}
 
 	}
 
 	//need to read file somehow.
 	//populate the array with data from the file
 	//TODO 
-	void readErrors(IResource resource) {
+	void readErrors(IResource resource) throws CoreException {
 		try {
+			
 			//gets the output.txt from the java project, regardless if it exists
 
 			//gets the string of the path
@@ -303,23 +249,57 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 			//now does the check if it exists
 			if(!file.exists()) {
 				//do nothing cause file doesn't exist
-				System.out.println("Im here, but should not be");
+				//reading file
 				return;
 			}
+			clean(null); //remove all previous errors
+			IWorkspace ws = ResourcesPlugin.getWorkspace();
+			markerHolders = new ArrayList<MarkerContainer>();
 			//allows scanner to read from the file
 			Scanner sc = new Scanner(new FileReader(file));
 			while(sc.hasNext()) {
-				String err1 = sc.nextLine();
-				String s1 = sc.nextLine();
-				String err2 = sc.nextLine();
-				String s2 = sc.nextLine();
+				String firstErrLine = sc.nextLine();
+				String firstFile = sc.nextLine();
+				String secondErrLine = sc.nextLine();
+				String secondFile = sc.nextLine();
 				
-				ErrorContainer e = new ErrorContainer(s1, s2, Integer.parseInt(err1), Integer.parseInt(err2));
-				ecs.add(e);
+				//can remove this line.
+				//ecs.add(e);
+				IPath location = Path.fromOSString(firstFile);
+				IFile firstIfile = ws.getRoot().getFileForLocation(location);
+				location = Path.fromOSString(secondFile);
+				IFile secondIfile = ws.getRoot().getFileForLocation(location);
+				
+
+//				String fileName = firstIfile.getLocation().toString();
+//				System.out.println("first = " + fileName);
+//				String sfileName = firstIfile.getLocation().toString();
+//				System.out.println("second = " + sfileName);
+				//reads the line from output.txt which doesn't update.
+				//TODO !@#!#!@#!@#!@#@#!#!#!@#!@#!@#@!!@@!#@!#!@#
+				//Need to add this marker into the markerHolder, so everytime we can update the line numbers
+				MarkerContainer mc = new MarkerContainer();
+
+				String msg = "Possible alias on line " + secondErrLine + " in file "+ secondFile;
+				IMarker firstMark = addMarker(firstIfile, msg, Integer.parseInt(firstErrLine), 2);
+				msg = "Alias followed from line " + firstErrLine + " in file " + firstFile;
+				IMarker secondMark = addMarker(secondIfile, msg, Integer.parseInt(secondErrLine), 2);
+				if(firstMark != null && secondMark != null) {
+					mc.setFirstMarker(firstMark);
+					mc.setSecondMarker(secondMark);
+					markerHolders.add(mc);
+				}
+
 			}
 			sc.close();
-			System.out.println("Michae");
-			file.delete();
+			System.out.println("Im tryna delete stuff here");
+			boolean xd = file.delete();
+
+			if(xd) {
+				System.out.println("detelet");
+			} else {
+				System.out.println("you got adis");
+			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
