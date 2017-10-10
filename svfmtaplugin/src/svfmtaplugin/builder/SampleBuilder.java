@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -14,6 +16,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -26,6 +29,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.ui.IMarkerResolution;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -43,10 +47,21 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		//to make a button, I don't know how to access the files.
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			IResource resource = delta.getResource();
-System.out.println("readingerrs");
-				readErrors(resource);	
+			readErrors(resource);	
 
-
+//			if(IResourceDelta.MARKERS != 0) {
+//				
+//				System.out.println(IResourceDelta.MARKERS);
+//			}
+//			if((delta.getFlags() & delta.MARKERS)	 != 0) {
+//				System.out.println("?? normal above, delta below");
+//				System.out.println(delta.MARKERS);
+//
+//				IMarkerDelta[] imd = delta.getMarkerDeltas(); 
+//				System.out.println(imd + " size = " + imd.length);
+//				
+//			}		
+			
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				// handle added resource
@@ -64,8 +79,9 @@ System.out.println("readingerrs");
 				// handle changed resource
 				//checkXML(resource);
 			//	checkwords(resource);
+				changeError(delta);
 				annotateErrors(resource);
-				System.out.println("Im changing thins?");
+				//System.out.println("Im changing thins?");
 				//deleteMarkers((IFile) resource);
 				break;
 			}
@@ -77,7 +93,7 @@ System.out.println("readingerrs");
 	class SampleResourceVisitor implements IResourceVisitor {
 		public boolean visit(IResource resource) {
 			//checkXML(resource);
-			annotateErrors(resource);
+			//annotateErrors(resource);
 			//return true to continue visiting children.
 			return true;
 		}
@@ -85,7 +101,7 @@ System.out.println("readingerrs");
 
 	public static final String BUILDER_ID = "svfmtaplugin.sampleBuilder";
 
-	private static final String MARKER_TYPE = "svfmtaplugin.xmlProblem";
+	private static final String MARKER_TYPE = "svfmtaplugin.DataRaceProblem";
 
 	private SAXParserFactory parserFactory;
 
@@ -96,6 +112,8 @@ System.out.println("readingerrs");
 			marker = file.createMarker(MARKER_TYPE);
 			marker.setAttribute(IMarker.MESSAGE, message);
 			marker.setAttribute(IMarker.SEVERITY, severity);
+			//
+			//marker.setAttribute(IJavaModelMarker, MY_JDT_PROBLEM_ID);
 			if (lineNumber == -1) {
 				lineNumber = 1;
 			}
@@ -142,13 +160,6 @@ System.out.println("readingerrs");
 	}
 
 
-//run the tool everytime something is changed? for single files. 
-// i think give them the option to unmark something and then when they think theyve fixed everything run the tool
-	// and =if its not fixed then theyll see it again
-	//if they change it, it'll annotate things that may not be there, cause output.txt
-	//they change something, remove it all?
-	//maybe it shouldnt annotate markers everytime u save but only once or allow them to press abbutton to anotate
-	//kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk 
 	private void deleteMarkers(IFile file) {
 		try {
 			file.deleteMarkers(MARKER_TYPE, false, IResource.DEPTH_ZERO);
@@ -202,11 +213,60 @@ System.out.println("readingerrs");
 		}
 	}
 	
+	void changeErrors(IResource resource) throws CoreException {
+		resource.deleteMarkers(MARKER_TYPE, false, IResource.DEPTH_ZERO);
+	}
+	void changeError(IResourceDelta resourceDelta) throws	CoreException {
+		IMarkerDelta[] imd = resourceDelta.getMarkerDeltas(); 
+		System.out.println(imd + " size = " + imd.length);
+		for(IMarkerDelta m : imd) {
+			System.out.println("printing imarker");
+			IMarker n = m.getMarker();
+
+			if(n.exists()) {
+				System.out.println(n.getAttribute(IMarker.MESSAGE));
+			
+			}
+			
+			
+		}
+	}
 	
-	void annotateErrors(IResource resource) {
+	//Annotate errors needs to run everytime something occurs in the resource to make it change
+	void annotateErrors(IResource resource) throws CoreException {
 
 
 		IWorkspace ws = ResourcesPlugin.getWorkspace();
+		if(markerHolders != null) {
+			for(MarkerContainer mc : markerHolders) {
+				IMarker firstMarker = null;
+				IMarker secondMarker = null;
+				if(mc.getFirstMarker().exists()) {
+					firstMarker = mc.getFirstMarker();					
+				} else {
+					//delete this mc, since they've changed the resource and we have no way of knowing
+					//if it fixed until they run mta again
+					//then continue
+				}
+				if(mc.getSecondMarker().exists()) {
+					secondMarker = mc.getSecondMarker();
+				} else {
+					//same as above
+				}
+				int firstErr = (int) firstMarker.getAttribute(IMarker.LINE_NUMBER);
+				int secondErr = (int) secondMarker.getAttribute(IMarker.LINE_NUMBER);
+				//TODO need to get the file names somehow
+				String msg = "Possible alias on line " + secondErr + " in file " + mc.getSecondFile();;
+				firstMarker.setAttribute(IMarker.MESSAGE, msg);
+				msg = "Alias followed from line " + firstErr + " in file " + mc.getFirstFile();
+				secondMarker.setAttribute(IMarker.MESSAGE, msg);
+				QuickFixer qf = new QuickFixer();
+				qf.getResolutions(firstMarker);
+				qf.getResolutions(secondMarker);
+
+			}
+		}
+		
 		//for(MarkerContainer mc : markerHolders) {
 			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
 
@@ -238,7 +298,6 @@ System.out.println("readingerrs");
 		try {
 			
 			//gets the output.txt from the java project, regardless if it exists
-
 			//gets the string of the path
 			String x = resource.getProject().getLocation().toString();
 			x = x + "/output.txt"; //need to be sure that this is the path...but linux.
@@ -256,15 +315,36 @@ System.out.println("readingerrs");
 			IWorkspace ws = ResourcesPlugin.getWorkspace();
 			markerHolders = new ArrayList<MarkerContainer>();
 			//allows scanner to read from the file
+			String pattern = "^\\.\\.\\/";
+			Pattern patt = Pattern.compile(pattern);
+			System.out.println(patt);
+			x = resource.getProject().getLocation().toString();
+
 			Scanner sc = new Scanner(new FileReader(file));
 			while(sc.hasNext()) {
 				String firstErrLine = sc.nextLine();
 				String firstFile = sc.nextLine();
 				String secondErrLine = sc.nextLine();
 				String secondFile = sc.nextLine();
+	
+				//need to regex ../ lines, for relative paths
+				Matcher m = patt.matcher(firstFile);
+				if(m.find()) {
+					System.out.println("replaced");
+					firstFile = firstFile.replaceAll("^..", x);
+				}
+
+				Matcher n = patt.matcher(secondFile);
+				if(n.find()) {
+					secondFile = secondFile.replaceAll("^..", x);
+					System.out.println(secondFile);
+				}
+
 				
 				//can remove this line.
 				//ecs.add(e);
+				
+				//If i get full path, then I just need this
 				IPath location = Path.fromOSString(firstFile);
 				IFile firstIfile = ws.getRoot().getFileForLocation(location);
 				location = Path.fromOSString(secondFile);
@@ -285,21 +365,15 @@ System.out.println("readingerrs");
 				msg = "Alias followed from line " + firstErrLine + " in file " + firstFile;
 				IMarker secondMark = addMarker(secondIfile, msg, Integer.parseInt(secondErrLine), 2);
 				if(firstMark != null && secondMark != null) {
-					mc.setFirstMarker(firstMark);
-					mc.setSecondMarker(secondMark);
+					mc.setFirstMarker(firstMark, firstFile);
+					mc.setSecondMarker(secondMark, secondFile);
 					markerHolders.add(mc);
 				}
 
 			}
 			sc.close();
-			System.out.println("Im tryna delete stuff here");
-			boolean xd = file.delete();
+			file.delete();
 
-			if(xd) {
-				System.out.println("detelet");
-			} else {
-				System.out.println("you got adis");
-			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

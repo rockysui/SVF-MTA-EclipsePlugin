@@ -127,11 +127,14 @@
       </menuContribution>
    </extension>
    <extension
-         id="xmlProblem"
-         name="XML Problem"
+         id="DataRaceProblem"
+         name="DataRaceProblem"
          point="org.eclipse.core.resources.markers">
-      <super
-            type="org.eclipse.core.resources.problemmarker">
+      <super type="org.eclipse.jdt.core.problem">
+      </super>
+      <super type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <super type="org.eclipse.core.resource.textmarker">
       </super>
       <persistent
             value="true">
@@ -152,6 +155,28 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+6">
       </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerResolution">
+         <markerResolutionGenerator
+            class="svfmtaplugin.builder.QuickFixer"
+			markerTypes="org.eclipse.jdt.core.problem">
+         </markerResolutionGenerator>
+   </extension>
+   <extension
+         point="org.eclipse.jdt.ui.quickFixProcessors">
+         <quickFixProcessor
+         class="quickfixes.CustomQuickFixProcessor"
+         id="quickfixes.quickFixProcessor">
+         </quickFixProcessor>
+         <handledMarkerTypes>
+         	<markerType
+         		id="DataRaceProblem">
+         	</markerType>
+         </handledMarkerTypes>
+   </extension>
+   <extension
+         point="org.eclipse.jdt.ui.quickAssistProcessors">
    </extension>
 
 </plugin>

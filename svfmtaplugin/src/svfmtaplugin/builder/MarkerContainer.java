@@ -6,6 +6,8 @@ public class MarkerContainer {
 
 		IMarker firstLine;
 		IMarker secondLine;
+		String firstFile;
+		String secondFile;
 		
 		IMarker getFirstMarker() {
 			return firstLine;
@@ -13,11 +15,25 @@ public class MarkerContainer {
 		IMarker getSecondMarker() {
 			return secondLine;
 		}
-		void setFirstMarker(IMarker marker) {
+		
+		String getFirstFile() {
+			return firstFile;
+		}
+		
+		String getSecondFile() {
+			return secondFile;
+		}
+		void setFirstMarker(IMarker marker, String file) {
 			firstLine = marker;
+			firstFile = file;
 		}
-		void setSecondMarker(IMarker marker) {
+		void setSecondMarker(IMarker marker, String file) {
 			secondLine = marker;
+			secondFile = file;
 		}
+		
+		
+		
+		
 		
 }
