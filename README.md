@@ -9,23 +9,22 @@ EclipsePlugin of Data Race Detection
 
 3. Setup the LLVM Gold plugin. Instructions are at https://github.com/SVF-tools/SVF/wiki/Install-LLVM-Gold-Plugin-on-Ubuntu
 
-4. In your C/C++ project set up a debug configuration (FOR multiple files/and single file //TODO)
-For now, set up an external tool to run clang on your file to convert it to a bc file. 
-![Imgur](https://i.imgur.com/TZsg9qj.png)
-Using the following arguments:
-* Location: `path of clang`
-* Working Directory: `Your current working directory`
-* Arguments: `-S -emit-llvm -g $(workspace_loc:/<PROJECTNAME>/<FILEPATH>} -o <OUTPUTNAME>.bc`
-![Imgur](https://i.imgur.com/xmThVXK.png)
+4. In your C/C++ project set up a debug configuration. Toolchain must be LLVM with Clang.
+![Imgur](https://i.imgur.com/Qaj8L1q.png)
+5. Right click the project's "Properties":
+And use the following compiler settings  
+![Imgur](https://i.imgur.com/bN81SMP.png)  
+![Imgur](https://i.imgur.com/XFlIopf.png)  
+Building with the Debug configuration will yield bitcode files in the Debug folder  
+![Imgur](https://i.imgur.com/wBcPBzD.png)
 
 6. Setup the MTA external tool:
+In 'External Tools Configurations'
 * Location: `path to MTA`
 * Working Directory: `Current working directory`
-* Arguments: `-mhp <OUTPUTNAME>.bc`
-![Imgur](https://i.imgur.com/2aNp66k.png)
+* Arguments: `-mhp <OUTPUTNAME>.bc`  
+![Imgur](https://i.imgur.com/kfTtTkQ.png)
 
-7. Convert the c file into a bc file by running the external tool that converts c to bc.
+7. Run the MTA external tool to generate the output.txt file
 
-8. Run the MTA external tool to generate the output.txt file
-
-9. Now errors in the file should be annotated if there are errors.
+8. Now errors in the file should be annotated if there are errors.
