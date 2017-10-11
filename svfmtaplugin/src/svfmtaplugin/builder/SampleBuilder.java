@@ -36,8 +36,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class SampleBuilder extends IncrementalProjectBuilder {
 	ArrayList<MarkerContainer> markerHolders;
-	int xxx;
-	int x;
+
 	class SampleDeltaVisitor implements IResourceDeltaVisitor {
 		/*
 		 * (non-Javadoc)
@@ -48,41 +47,18 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			IResource resource = delta.getResource();
 			readErrors(resource);	
-
-//			if(IResourceDelta.MARKERS != 0) {
-//				
-//				System.out.println(IResourceDelta.MARKERS);
-//			}
-//			if((delta.getFlags() & delta.MARKERS)	 != 0) {
-//				System.out.println("?? normal above, delta below");
-//				System.out.println(delta.MARKERS);
-//
-//				IMarkerDelta[] imd = delta.getMarkerDeltas(); 
-//				System.out.println(imd + " size = " + imd.length);
-//				
-//			}		
 			
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
 				// handle added resource
-				
-//maybs donno, how'd that work... but k lets see
 				annotateErrors(resource);
 				break;
 			case IResourceDelta.REMOVED:
 				// handle removed resource
-				System.out.println("Im removing thins?");
-				removeAnnotation((IFile) resource);
-				//clean(null);
 				break;
 			case IResourceDelta.CHANGED:
-				// handle changed resource
-				//checkXML(resource);
-			//	checkwords(resource);
 				changeError(delta);
 				annotateErrors(resource);
-				//System.out.println("Im changing thins?");
-				//deleteMarkers((IFile) resource);
 				break;
 			}
 			//return true to continue visiting children.
@@ -92,9 +68,7 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 
 	class SampleResourceVisitor implements IResourceVisitor {
 		public boolean visit(IResource resource) {
-			//checkXML(resource);
-			//annotateErrors(resource);
-			//return true to continue visiting children.
+
 			return true;
 		}
 	}
@@ -110,10 +84,10 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		IMarker marker = null;
 		try {
 			marker = file.createMarker(MARKER_TYPE);
+			marker.setAttribute(IMarker.USER_EDITABLE, true);
 			marker.setAttribute(IMarker.MESSAGE, message);
 			marker.setAttribute(IMarker.SEVERITY, severity);
-			//
-			//marker.setAttribute(IJavaModelMarker, MY_JDT_PROBLEM_ID);
+
 			if (lineNumber == -1) {
 				lineNumber = 1;
 			}
@@ -124,30 +98,21 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		return marker;
 	}
 
-	private void modifyMarker(IFile file, String message, int severity) {
-		
-	}
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.eclipse.core.internal.events.InternalBuilder#build(int,
 	 *      java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
 	 */
-	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
-	
-			throws CoreException {
-
+	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 
 		if (kind == FULL_BUILD) {
-			System.out.println("full built");
 			fullBuild(monitor);
 		} else {
 			IResourceDelta delta = getDelta(getProject());
 			if (delta == null) {
 				fullBuild(monitor);
 			} else {
-				System.out.println("incre built");
-
 				incrementalBuild(delta, monitor);
 			}
 		}
@@ -177,14 +142,6 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private SAXParser getParser() throws ParserConfigurationException,
-			SAXException {
-		if (parserFactory == null) {
-			parserFactory = SAXParserFactory.newInstance();
-		}
-		return parserFactory.newSAXParser();
-	}
-
 	protected void incrementalBuild(IResourceDelta delta,
 			IProgressMonitor monitor) throws CoreException {
 		// the visitor does the work.
@@ -194,24 +151,6 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 	
 	/////////////////////////////////!@#!@#!@#!@#!@#!@#!#!#
 
-
-
-	void removeAnnotation(IResource resource) {
-		IWorkspace ws = ResourcesPlugin.getWorkspace();
-		for(MarkerContainer ec : markerHolders) {
-			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
-
-//			
-//			IPath location = Path.fromOSString(ec.getFirstFile());
-//			IFile firstIfile = ws.getRoot().getFileForLocation(location);
-//			location = Path.fromOSString(ec.getSecondFile());
-//			IFile secondIfile = ws.getRoot().getFileForLocation(location);
-//			
-//			deleteMarkers(firstIfile);
-//			deleteMarkers(secondIfile);	
-
-		}
-	}
 	
 	void changeErrors(IResource resource) throws CoreException {
 		resource.deleteMarkers(MARKER_TYPE, false, IResource.DEPTH_ZERO);
@@ -224,33 +163,37 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 			IMarker n = m.getMarker();
 
 			if(n.exists()) {
-				System.out.println(n.getAttribute(IMarker.MESSAGE));
-			
-			}
-			
-			
+				System.out.println(n.getAttribute(IMarker.MESSAGE));	
+			}		
 		}
 	}
 	
 	//Annotate errors needs to run everytime something occurs in the resource to make it change
 	void annotateErrors(IResource resource) throws CoreException {
-
-
-		IWorkspace ws = ResourcesPlugin.getWorkspace();
 		if(markerHolders != null) {
 			for(MarkerContainer mc : markerHolders) {
 				IMarker firstMarker = null;
 				IMarker secondMarker = null;
-				if(mc.getFirstMarker().exists()) {
+				if(mc.getFirstMarker() != null && mc.getFirstMarker().exists()) {
 					firstMarker = mc.getFirstMarker();					
 				} else {
+					if(mc.getSecondMarker()!= null && mc.getSecondMarker().exists()) {
+						mc.getSecondMarker().delete();
+					}
+					return;
 					//delete this mc, since they've changed the resource and we have no way of knowing
 					//if it fixed until they run mta again
 					//then continue
 				}
-				if(mc.getSecondMarker().exists()) {
+				
+				if(mc.getSecondMarker()!= null && mc.getSecondMarker().exists()) {
 					secondMarker = mc.getSecondMarker();
 				} else {
+					//this marker doesn't exist, so delete its partner
+					if(mc.getFirstMarker() != null && mc.getFirstMarker().exists()) {
+						firstMarker.delete();
+					}
+					return;
 					//same as above
 				}
 				int firstErr = (int) firstMarker.getAttribute(IMarker.LINE_NUMBER);
@@ -260,35 +203,16 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 				firstMarker.setAttribute(IMarker.MESSAGE, msg);
 				msg = "Alias followed from line " + firstErr + " in file " + mc.getFirstFile();
 				secondMarker.setAttribute(IMarker.MESSAGE, msg);
+				System.out.println("dude im in here");
 				QuickFixer qf = new QuickFixer();
+				qf.setOtherMarker(secondMarker);
 				qf.getResolutions(firstMarker);
-				qf.getResolutions(secondMarker);
-
+				QuickFixer qff = new QuickFixer();
+				qff.setOtherMarker(firstMarker);
+				qff.getResolutions(secondMarker);
+				System.out.println("out of scope)");
 			}
 		}
-		
-		//for(MarkerContainer mc : markerHolders) {
-			//this is testing java style programs, so remove the string src/asd (assuming that output and cpp files are in the same thing
-
-			
-//			IPath location = Path.fromOSString(ec.getFirstFile());
-//			IFile firstIfile = ws.getRoot().getFileForLocation(location);
-//			location = Path.fromOSString(ec.getSecondFile());
-//			IFile secondIfile = ws.getRoot().getFileForLocation(location);
-//			
-////			deleteMarkers(firstIfile);
-////			deleteMarkers(secondIfile);
-////			String fileName = firstIfile.getLocation().toString();
-////			System.out.println("first = " + fileName);
-////			String sfileName = firstIfile.getLocation().toString();
-////			System.out.println("second = " + sfileName);
-//			//reads the line from output.txt which doesn't update.
-//			addMarker(firstIfile, "Possible alias on line " + ec.getSecondErr() + " in file "+ ec.getSecondFile(), ec.getFirstErr(), 2);
-//			addMarker(secondIfile, "Alias followed from line " + ec.getFirstErr() + " in file " + ec.getFirstFile(), ec.getSecondErr(), 2);
-
-
-		//}
-
 	}
 
 	//need to read file somehow.
@@ -298,12 +222,10 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 		try {
 			
 			//gets the output.txt from the java project, regardless if it exists
-			//gets the string of the path
 			String x = resource.getProject().getLocation().toString();
 			x = x + "/output.txt"; //need to be sure that this is the path...but linux.
 			//creates a file class
 			File file = new File(x);
-			
 			
 			//now does the check if it exists
 			if(!file.exists()) {
@@ -338,11 +260,7 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 				if(n.find()) {
 					secondFile = secondFile.replaceAll("^..", x);
 					System.out.println(secondFile);
-				}
-
-				
-				//can remove this line.
-				//ecs.add(e);
+				}		
 				
 				//If i get full path, then I just need this
 				IPath location = Path.fromOSString(firstFile);
@@ -350,37 +268,23 @@ public class SampleBuilder extends IncrementalProjectBuilder {
 				location = Path.fromOSString(secondFile);
 				IFile secondIfile = ws.getRoot().getFileForLocation(location);
 				
-
-//				String fileName = firstIfile.getLocation().toString();
-//				System.out.println("first = " + fileName);
-//				String sfileName = firstIfile.getLocation().toString();
-//				System.out.println("second = " + sfileName);
-				//reads the line from output.txt which doesn't update.
-				//TODO !@#!#!@#!@#!@#@#!#!#!@#!@#!@#@!!@@!#@!#!@#
-				//Need to add this marker into the markerHolder, so everytime we can update the line numbers
 				MarkerContainer mc = new MarkerContainer();
 
 				String msg = "Possible alias on line " + secondErrLine + " in file "+ secondFile;
-				IMarker firstMark = addMarker(firstIfile, msg, Integer.parseInt(firstErrLine), 2);
+				IMarker firstMark = addMarker(firstIfile, msg, Integer.parseInt(firstErrLine), 1);
 				msg = "Alias followed from line " + firstErrLine + " in file " + firstFile;
-				IMarker secondMark = addMarker(secondIfile, msg, Integer.parseInt(secondErrLine), 2);
+				IMarker secondMark = addMarker(secondIfile, msg, Integer.parseInt(secondErrLine), 1);
 				if(firstMark != null && secondMark != null) {
 					mc.setFirstMarker(firstMark, firstFile);
 					mc.setSecondMarker(secondMark, secondFile);
 					markerHolders.add(mc);
 				}
-
 			}
 			sc.close();
 			file.delete();
-
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
-	
-
-	
 }
