@@ -1,5 +1,5 @@
 # SVF-MTA-EclipsePlugin
-EclipsePlugin of Data Race Detection
+Eclipse Plugin for Data Race Detection
 
 [![plug-in example - youtube](http://img.youtube.com/vi/GGOyERf6XpU/0.jpg)](http://www.youtube.com/watch?v=GGOyERf6XpU)
 ### Setup instructions.
