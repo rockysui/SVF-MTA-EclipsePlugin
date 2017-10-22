@@ -1,6 +1,6 @@
 # SVF-MTA-EclipsePlugin
 EclipsePlugin of Data Race Detection
-![Alt Text](https://i.imgur.com/JDthlpw.gif)
+[![plug-in example - youtube](http://img.youtube.com/vi/GGOyERf6XpU/0.jpg)](http://www.youtube.com/watch?v=GGOyERf6XpU)
 ### Setup instructions.
 
 1. Download the plugin (PLUGIN NAME) at (ADDRESS). (When released).
